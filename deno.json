@@ -1,0 +1,6 @@
+{
+    "imports": {
+        "isomorphic-git": "https://esm.sh/isomorphic-git@v1",
+        "isomorphic-git/http/node": "npm:isomorphic-git/http/node/index.js"
+    }
+}
