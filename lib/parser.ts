@@ -2,16 +2,30 @@ import { Directory, SourceFile, readRepo } from "./fileStore.ts";
 import { parse, ParseResult } from "@babel/parser";
 import { File } from "@babel/types";
 
+export type ImportInfo = {
+    as: string
+    from: string
+}
+
+export type ModuleInfo = {
+    exports: string[]
+    unusedExports: string[]
+    imports: ImportInfo[]
+}
+
 export type ParsedFile = {
   type: "file"
   name: string
   content: string
+  parent?: ParsedDirectory
   ast: ParseResult<File>
+  moduleInfo?: ModuleInfo
 }
 
 export type ParsedDirectory = {
   type: "directory"
   name: string
+  parent?: ParsedDirectory
   children: (ParsedFile|ParsedDirectory)[]
 }
 
@@ -41,10 +55,12 @@ export const parseRepo = async (repoUrl: string, extensions: string[]): Promise<
     if (file.type === "file") {
       return toParsedFile(file)
     } else {
-      return {
+      const parsedDirectory = {
         ...file,
         children: file.children.map(transform)
       }
+      parsedDirectory.children.forEach(child => child.parent = parsedDirectory)
+      return parsedDirectory
     }
   }
 

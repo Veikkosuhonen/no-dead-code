@@ -2,10 +2,15 @@ import fs from 'node:fs';
 import git from "isomorphic-git"
 import http from "isomorphic-git/http/node"
 import path from "node:path"
+import { isDeno } from './config.ts';
 
 const getCwd = () => {
   /* @ts-ignore */
-  return Deno.cwd() as string;
+  return isDeno() ? Deno.cwd() : process.cwd() as string;
+}
+
+export const getRepoPath = (repoUrl: string) => {
+  return path.join(getCwd(), "tmp", "clones", repoUrl.replace(/\//g, "_"))
 }
 
 /**
@@ -14,7 +19,7 @@ const getCwd = () => {
  * @returns 
  */
 export const clone = async (url: string) => {
-  const dir = path.join(getCwd(), "tmp", "clones", url.replace(/\//g, "_"))
+  const dir = getRepoPath(url)
   await fs.promises.mkdir(dir, { recursive: true })
   await git.clone({
     fs,
@@ -37,10 +42,6 @@ export type Directory = {
   type: "directory"
   name: string
   children: (SourceFile|Directory)[]
-}
-
-export const getRepoPath = (repoUrl: string) => {
-  return path.join(getCwd(), "tmp", "clones", repoUrl.replace(/\//g, "_"))
 }
 
 /**
