@@ -4,12 +4,14 @@ import path from "node:path"
 export type SourceFile = {
   type: "file"
   name: string
+  path: string
   content: string
 }
 
 export type Directory = {
   type: "directory"
   name: string
+  path: string
   children: (SourceFile|Directory)[]
 }
 
@@ -28,15 +30,17 @@ export const readDir = async (dir: string, extensions: string[], ignore: string[
       return {
         type: "directory",
         name: file,
+        path: filePath,
         children: await readDir(filePath, extensions, ignore)
-      } as Directory
+      }
 
     } else if (file.match(new RegExp(`\\.(${extensions.join("|")})$`))) {
       return {
         type: "file",
         name: file,
+        path: filePath,
         content: await fs.promises.readFile(filePath, "utf-8")
-      } as SourceFile
+      }
 
     } else {
       return null

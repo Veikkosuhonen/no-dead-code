@@ -1,4 +1,4 @@
-import { Expression, Node, traverse } from "@babel/types";
+import { traverse } from "@babel/types";
 import { ImportInfo, ParsedDirectory, ParsedFile } from "./parser.js";
 
 const findFile = (files: (ParsedFile|ParsedDirectory)[], segments: string[]): ParsedFile|ParsedDirectory|undefined => {
@@ -66,6 +66,24 @@ const findImportedIdentifiers = (file: ParsedFile) => {
                         }).filter(spec => spec && spec.from.startsWith(".")) as ImportInfo[]
                     );
                     break;
+                case "ExportNamedDeclaration":
+                    if (path.source) {
+                        if (path.source.type === "StringLiteral") {
+                            imports.push(...path.specifiers.map(specifier => {
+                                if (specifier.type === "ExportSpecifier") {
+                                    return {
+                                        as: specifier.local.name,
+                                        from: path.source!.value
+                                    }
+                                } else {
+                                    return {
+                                        as: "default",
+                                        from: path.source!.value
+                                    }
+                                }
+                            }))
+                        }
+                    }
             }
         },
     })
@@ -169,7 +187,7 @@ export const analyse = (files: (ParsedFile|ParsedDirectory)[]) => {
     // Report unused exports
     allSourceFiles.forEach(file => {
         if (file.moduleInfo?.unusedExports.length) {
-            console.log(`${file.name}: Unused exports: ${file.moduleInfo.unusedExports.join(", ")}`);
+            console.log(`${file.path}: Unused exports: ${file.moduleInfo.unusedExports.join(", ")}`);
         }
     })
 }

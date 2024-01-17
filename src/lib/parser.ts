@@ -16,6 +16,7 @@ export type ModuleInfo = {
 export type ParsedFile = {
   type: "file"
   name: string
+  path: string
   content: string
   parent?: ParsedDirectory
   ast: ParseResult<File>
@@ -25,6 +26,7 @@ export type ParsedFile = {
 export type ParsedDirectory = {
   type: "directory"
   name: string
+  path: string
   parent?: ParsedDirectory
   children: (ParsedFile|ParsedDirectory)[]
 }

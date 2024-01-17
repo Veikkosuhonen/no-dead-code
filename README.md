@@ -1,5 +1,16 @@
 # Dead code search tool
 
-- Traverse the AST and find unused references across modules
+Reports unused exports in JS/TS files.
 
-Not functional yet
+## Usage
+
+```sh
+$ js-project-analyser
+```
+
+Example output
+
+```
+src/client/util/common.js: Unused exports: colors, CONFIG_NAME
+src/client/pages/FeedbackTarget/tabs/Results/QuestionResults/utils.js: Unused exports: countAverage, countStandardDeviation, countMedian
+```
