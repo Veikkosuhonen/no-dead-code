@@ -70,7 +70,11 @@ const findImportedIdentifiers = (file: ParsedFile) => {
         },
     })
 
-    return imports
+    return imports.map(importInfo => {
+        // Remove file extension
+        const path = importInfo.from.replace(/\.[^/.]+$/, "");
+        return { ...importInfo, from: path };
+    })
 }
 
 export const analyse = (files: (ParsedFile|ParsedDirectory)[]) => {
