@@ -1,4 +1,4 @@
-import { Directory, SourceFile, readRepo } from "./fileStore.ts";
+import { Directory, SourceFile, readDir } from "./fileStore.js";
 import { parse, ParseResult } from "@babel/parser";
 import { File } from "@babel/types";
 
@@ -48,8 +48,14 @@ const toParsedFile = (file: SourceFile): ParsedFile => {
 /**
  * Parse files from a repository
  */
-export const parseRepo = async (repoUrl: string, extensions: string[]): Promise<(ParsedFile|ParsedDirectory)[]> => {
-  const files = await readRepo(repoUrl, extensions)
+export const parseDirectory = async ({ 
+  path, extensions, ignore
+}: {
+  path: string
+  extensions: string[]
+  ignore: string[]
+}): Promise<(ParsedFile|ParsedDirectory)[]> => {
+  const files = await readDir(path, extensions, ignore)
 
   const transform = (file: SourceFile|Directory): ParsedFile|ParsedDirectory => {
     if (file.type === "file") {

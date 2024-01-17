@@ -1,4 +1,4 @@
-import { ParsedDirectory, ParsedFile } from "./parser.ts";
+import { ParsedDirectory, ParsedFile } from "./parser.js";
 
 type TreeNode = ParsedFile | ParsedDirectory;
 

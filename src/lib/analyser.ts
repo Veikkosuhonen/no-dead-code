@@ -1,5 +1,5 @@
 import { Expression, Node, traverse } from "@babel/types";
-import { ImportInfo, ParsedDirectory, ParsedFile } from "./parser.ts";
+import { ImportInfo, ParsedDirectory, ParsedFile } from "./parser.js";
 
 const findFile = (files: (ParsedFile|ParsedDirectory)[], segments: string[]): ParsedFile|ParsedDirectory|undefined => {
     const [segment, ...rest] = segments;
@@ -73,16 +73,7 @@ const findImportedIdentifiers = (file: ParsedFile) => {
     return imports
 }
 
-export const analyse = (files: (ParsedFile|ParsedDirectory)[], rootFilePath: string) => {
-    const rootFile = findFile(files, rootFilePath.split("/"));
-
-    if (!rootFile) {
-        throw new Error(`Could not find root file ${rootFilePath}`);
-    }
-
-    if (rootFile.type === 'directory') {
-        throw new Error(`Root file ${rootFilePath} is a directory`);
-    }
+export const analyse = (files: (ParsedFile|ParsedDirectory)[]) => {
 
     const sourceDir = findFile(files, ["src"]);
     if (!sourceDir) {
