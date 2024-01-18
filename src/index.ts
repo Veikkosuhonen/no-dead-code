@@ -19,6 +19,11 @@ const main = async (args: string[]) => {
 
     const sourceFiles = analyse(result);
 
+    if (sourceFiles.length === 0) {
+        console.log("No source files found");
+        return;
+    }
+
     printUnusedExports(sourceFiles);
 }
 

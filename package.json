@@ -7,19 +7,22 @@
   },
   "scripts": {
     "dev": "tsc -w",
-    "link": "pnpm link --global"
+    "link": "pnpm link --global",
+    "lint": "tsc",
+    "test": "vitest run",
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "ci": "pnpm run lint && pnpm run test && pnpm run build"
   },
   "devDependencies": {
     "@total-typescript/ts-reset": "^0.5.1",
     "@types/node": "^20.11.5",
-    "typescript": "^5.1.6"
+    "tsup": "^8.0.1",
+    "typescript": "^5.1.6",
+    "vitest": "1.2.1"
   },
   "dependencies": {
     "@babel/parser": "^7.23.6",
     "@babel/traverse": "^7.23.7",
     "@babel/types": "^7.23.6"
-  },
-  "engines": {
-    "node": ">=18"
   }
 }
