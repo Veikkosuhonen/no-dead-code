@@ -54,7 +54,5 @@ export const readDir = async (dir: string, extensions: string[], ignore: string[
     children: results.filter(Boolean)
   }
 
-  console.log(rootDirectory.children.map(child => child.path))
-
   return rootDirectory
 }
