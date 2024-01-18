@@ -22,6 +22,8 @@ src/client/pages/FeedbackTarget/tabs/Results/QuestionResults/utils.js: Unused ex
 ## Todo
 
 - CommonJS modules
+- Absolute paths
+- Path aliases
 - Formatted & colored output
 - CLI options for includes/excludes/file extensions
 - Deeper usage search

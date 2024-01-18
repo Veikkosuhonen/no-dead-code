@@ -27,9 +27,14 @@ const findExportedIdentifiers = (file: ParsedFile) => {
     traverse(file.ast, {
         enter(path) {
             switch (path.type) {
+
+                // ES module exports
+                // export default foo
                 case "ExportDefaultDeclaration":
                     exports.push("default");
                     break;
+
+                // export { foo, bar }
                 case "ExportNamedDeclaration":
                     if (path.declaration?.type === "VariableDeclaration") {
                         exports.push(
@@ -44,6 +49,8 @@ const findExportedIdentifiers = (file: ParsedFile) => {
                     break;
                 
                 // CommonJS module.exports
+                // module.exports = { foo, bar }
+                // module.exports = foo
                 case "ExpressionStatement":
                     if (path.expression.type !== "AssignmentExpression") return
                     if (path.expression.left.type !== "MemberExpression") return
@@ -77,6 +84,10 @@ const findImportedIdentifiers = (file: ParsedFile) => {
     traverse(file.ast, {
         enter(path) {
             switch (path.type) {
+
+                // ES module imports
+                // import { foo } from "./bar"
+                // import foo from "./bar"
                 case "ImportDeclaration":
                     imports.push(
                         ...path.specifiers.map(specifier => {
@@ -88,6 +99,8 @@ const findImportedIdentifiers = (file: ParsedFile) => {
                         }).filter(spec => spec && spec.from.startsWith(".")) as ImportInfo[]
                     );
                     break;
+
+                // export { foo } from "./bar"
                 case "ExportNamedDeclaration":
                     if (path.source) {
                         if (path.source.type === "StringLiteral") {
@@ -106,6 +119,44 @@ const findImportedIdentifiers = (file: ParsedFile) => {
                             }))
                         }
                     }
+                    break;
+                
+                // CommonJS require
+                // const foo = require("./bar")
+                // const { foo } = require("./bar")
+                case "VariableDeclaration":
+                    path.declarations.forEach(decl => {
+                        if (decl.type === "VariableDeclarator") {
+                            if (decl.init?.type === "CallExpression") {
+                                const requireCall = decl.init;
+                                if (requireCall.callee.type === "Identifier" && requireCall.callee.name === "require") {
+                                    if (requireCall.arguments.length === 1 && requireCall.arguments[0].type === "StringLiteral") {
+
+                                        const from = requireCall.arguments[0].value;
+                                        // Only allow relative imports
+                                        if (!from.startsWith(".")) return;
+
+                                        // Default import
+                                        if (decl.id.type === "Identifier") {
+                                            imports.push({ as: "default", from });
+                                        } else if (decl.id.type === "ObjectPattern") {
+                                            // Named import (destructuring)
+                                            decl.id.properties.forEach(prop => {
+                                                if (prop.type === "ObjectProperty") {
+                                                    if (prop.key.type === "Identifier") {
+                                                        imports.push({ as: prop.key.name, from });
+                                                    } else if (prop.key.type === "StringLiteral") {
+                                                        imports.push({ as: prop.key.value, from });
+                                                    }
+                                                }
+                                            })
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    })
+                    break;
             }
         },
     })
