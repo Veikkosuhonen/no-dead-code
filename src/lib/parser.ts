@@ -5,6 +5,7 @@ import { File } from "@babel/types";
 export type ImportInfo = {
     as: string
     from: string
+    type?: "esm"|"cjs" 
 }
 
 export type ModuleInfo = {
@@ -56,8 +57,8 @@ export const parseDirectory = async ({
   path: string
   extensions: string[]
   ignore: string[]
-}): Promise<(ParsedFile|ParsedDirectory)[]> => {
-  const files = await readDir(path, extensions, ignore)
+}): Promise<ParsedDirectory> => {
+  const root = await readDir(path, extensions, ignore)
 
   const transform = (file: SourceFile|Directory): ParsedFile|ParsedDirectory => {
     if (file.type === "file") {
@@ -72,5 +73,5 @@ export const parseDirectory = async ({
     }
   }
 
-  return files.map(transform)
+  return transform(root) as ParsedDirectory
 }

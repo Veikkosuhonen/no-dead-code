@@ -15,7 +15,7 @@ export type Directory = {
   children: (SourceFile|Directory)[]
 }
 
-export const readDir = async (dir: string, extensions: string[], ignore: string[]): Promise<(SourceFile|Directory)[]> => {
+export const readDir = async (dir: string, extensions: string[], ignore: string[]): Promise<Directory> => {
   const cwd = process.cwd()
   const rootPath = path.join(cwd, dir)
   const files = await fs.promises.readdir(rootPath)
@@ -31,7 +31,7 @@ export const readDir = async (dir: string, extensions: string[], ignore: string[
         type: "directory",
         name: file,
         path: filePath,
-        children: await readDir(filePath, extensions, ignore)
+        children: (await readDir(filePath, extensions, ignore)).children
       }
 
     } else if (file.match(new RegExp(`\\.(${extensions.join("|")})$`))) {
@@ -47,5 +47,14 @@ export const readDir = async (dir: string, extensions: string[], ignore: string[
     }
   }))
 
-  return results.filter(Boolean)
+  const rootDirectory: Directory = {
+    type: "directory",
+    name: dir,
+    path: rootPath,
+    children: results.filter(Boolean)
+  }
+
+  console.log(rootDirectory.children.map(child => child.path))
+
+  return rootDirectory
 }

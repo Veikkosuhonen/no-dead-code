@@ -1,4 +1,4 @@
-import { traverse } from "@babel/types";
+import { traverse, ObjectProperty, Node, CallExpression, Identifier, StringLiteral, Expression, V8IntrinsicIdentifier } from "@babel/types";
 import { ImportInfo, ParsedDirectory, ParsedFile } from "./parser.js";
 
 const findFile = (files: (ParsedFile|ParsedDirectory)[], segments: string[]): ParsedFile|ParsedDirectory|undefined => {
@@ -78,6 +78,31 @@ const findExportedIdentifiers = (file: ParsedFile) => {
     return exports
 }
 
+interface RequireIdentifier extends Identifier {
+    name: "require"
+}
+
+interface RequireCall extends CallExpression {
+    callee: RequireIdentifier
+    arguments: [StringLiteral]
+}
+
+const getRequireCall = (path: Expression|V8IntrinsicIdentifier): RequireCall|undefined => {
+    if (path.type !== "CallExpression") return
+    if (path.callee.type !== "Identifier") return;
+    if (path.callee.name !== "require") return;
+    if (path.arguments.length !== 1) return;
+    if (path.arguments[0].type !== "StringLiteral") return;
+    const arg = path.arguments[0];
+
+    return {
+        ...path,
+        type: "CallExpression",
+        callee: { ...path.callee, name: "require" },
+        arguments: [arg],
+    }
+}
+
 const findImportedIdentifiers = (file: ParsedFile) => {
     const imports: ImportInfo[] = [];
 
@@ -108,12 +133,12 @@ const findImportedIdentifiers = (file: ParsedFile) => {
                                 if (specifier.type === "ExportSpecifier") {
                                     return {
                                         as: specifier.local.name,
-                                        from: path.source!.value
+                                        from: path.source!.value,
                                     }
                                 } else {
                                     return {
                                         as: "default",
-                                        from: path.source!.value
+                                        from: path.source!.value,
                                     }
                                 }
                             }))
@@ -125,38 +150,66 @@ const findImportedIdentifiers = (file: ParsedFile) => {
                 // const foo = require("./bar")
                 // const { foo } = require("./bar")
                 case "VariableDeclaration":
+                    const type = "cjs"
                     path.declarations.forEach(decl => {
                         if (decl.type === "VariableDeclarator") {
-                            if (decl.init?.type === "CallExpression") {
-                                const requireCall = decl.init;
-                                if (requireCall.callee.type === "Identifier" && requireCall.callee.name === "require") {
-                                    if (requireCall.arguments.length === 1 && requireCall.arguments[0].type === "StringLiteral") {
+                            const requireCall = decl.init ? getRequireCall(decl.init) : undefined;
+                            if (!requireCall) return;
+                            const from = requireCall.arguments[0].value;
+                            // Only allow relative imports
+                            if (!from.startsWith(".")) return;
 
-                                        const from = requireCall.arguments[0].value;
-                                        // Only allow relative imports
-                                        if (!from.startsWith(".")) return;
-
-                                        // Default import
-                                        if (decl.id.type === "Identifier") {
-                                            imports.push({ as: "default", from });
-                                        } else if (decl.id.type === "ObjectPattern") {
-                                            // Named import (destructuring)
-                                            decl.id.properties.forEach(prop => {
-                                                if (prop.type === "ObjectProperty") {
-                                                    if (prop.key.type === "Identifier") {
-                                                        imports.push({ as: prop.key.name, from });
-                                                    } else if (prop.key.type === "StringLiteral") {
-                                                        imports.push({ as: prop.key.value, from });
-                                                    }
-                                                }
-                                            })
+                            // Default import
+                            if (decl.id.type === "Identifier") {
+                                imports.push({ as: "default", from, type });
+                            } else if (decl.id.type === "ObjectPattern") {
+                                // Named import (destructuring)
+                                decl.id.properties.forEach(prop => {
+                                    if (prop.type === "ObjectProperty") {
+                                        if (prop.key.type === "Identifier") {
+                                            imports.push({ as: prop.key.name, from, type });
+                                        } else if (prop.key.type === "StringLiteral") {
+                                            imports.push({ as: prop.key.value, from, type });
                                         }
                                     }
-                                }
+                                })
                             }
                         }
                     })
                     break;
+                
+                // CommonJS require
+                // module.exports = require("./bar")
+                case "ExpressionStatement":
+                    if (path.expression.type !== "AssignmentExpression") return
+                    const requireCall = getRequireCall(path.expression.right);
+                    if (!requireCall) return;
+                    const from = requireCall.arguments[0].value;
+                    // Only allow relative imports
+                    if (!from.startsWith(".")) return;
+                    // Default import
+                    imports.push({ as: "default", from, type: "cjs" });
+                    break;
+                
+                // CommonJS require
+                // require("./bar")()
+                case "CallExpression":
+                    // Is it being called?
+                    let requireCall2 = getRequireCall(path.callee)
+                    if (!requireCall2) {
+                        // Or is it being passed as an argument?
+                        for (const arg of path.arguments) {
+                            requireCall2 = arg.type === "CallExpression" ? getRequireCall(arg) : undefined;
+                            if (requireCall2) break;
+                        }
+                    }
+                    if (!requireCall2) return;
+
+                    const from2 = requireCall2.arguments[0].value;
+                    // Only allow relative imports
+                    if (!from2.startsWith(".")) return;
+                    // Default import
+                    imports.push({ as: "default", from: from2, type: "cjs" });
             }
         },
     })
@@ -168,13 +221,7 @@ const findImportedIdentifiers = (file: ParsedFile) => {
     })
 }
 
-export const analyse = (files: (ParsedFile|ParsedDirectory)[]) => {
-
-    const sourceDir = findFile(files, ["src"]);
-    if (!sourceDir) {
-        throw new Error(`Could not find source directory`);
-    }
-
+export const analyse = (root: ParsedDirectory) => {
     const allSourceFiles: ParsedFile[] = []
 
     const walkFiles = (file: ParsedFile|ParsedDirectory, path: string[] = []) => {
@@ -188,10 +235,16 @@ export const analyse = (files: (ParsedFile|ParsedDirectory)[]) => {
         }
     }
 
-    walkFiles(sourceDir);
+    walkFiles(root);
 
     const markImport = (file: ParsedFile, importInfo: ImportInfo) => {
         if (file.moduleInfo?.unusedExports) {
+            // If this is a CJS "default" import, consider all exports used
+            if (importInfo.type === "cjs" && importInfo.as === "default") {
+                file.moduleInfo.unusedExports = [];
+                return;
+            }
+
             file.moduleInfo.unusedExports = file.moduleInfo.unusedExports.filter(exportName => exportName !== importInfo.as)
         }
     }
@@ -255,7 +308,7 @@ export const analyse = (files: (ParsedFile|ParsedDirectory)[]) => {
         }
     }
 
-    walkImports(sourceDir);
+    walkImports(root);
 
     return allSourceFiles
 }

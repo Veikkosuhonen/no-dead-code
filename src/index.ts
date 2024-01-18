@@ -12,8 +12,8 @@ const main = async (args: string[]) => {
 
     const result = await parseDirectory({
         path, 
-        extensions: ['js', 'ts', 'tsx', 'jsx'],
-        ignore: ['node_modules', '.git', 'migrations']
+        extensions: ['cjs', 'js', 'ts', 'tsx', 'jsx'],
+        ignore: ['node_modules', '.git', 'migrations', 'dist', 'build']
     });
 
     const sourceFiles = analyse(result);
