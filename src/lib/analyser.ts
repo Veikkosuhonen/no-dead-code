@@ -42,6 +42,28 @@ const findExportedIdentifiers = (file: ParsedFile) => {
                         );
                     }
                     break;
+                
+                // CommonJS module.exports
+                case "ExpressionStatement":
+                    if (path.expression.type !== "AssignmentExpression") return
+                    if (path.expression.left.type !== "MemberExpression") return
+                    if (path.expression.left.object.type !== "Identifier" || path.expression.left.object.name !== "module") return
+                    if (path.expression.right.type === "Identifier") {
+                        // Default export
+                        exports.push("default");
+                    } else if (path.expression.right.type === "ObjectExpression") {
+                        // Named exports
+                        path.expression.right.properties.forEach(prop => {
+                            if (prop.type === "ObjectProperty") {
+                                if (prop.key.type === "Identifier") {
+                                    exports.push(prop.key.name);
+                                } else if (prop.key.type === "StringLiteral") {
+                                    exports.push(prop.key.value);
+                                }
+                            }
+                        })
+                    }
+                    break;
             }
         },
     })
