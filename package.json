@@ -1,7 +1,14 @@
 {
-  "name": "js-project-analyser",
-  "type": "module",
-  "main": "index.js",
+  "name": "@veikkosuhonen/no-dead-code",
+  "version": "0.1.0",
+  "description": "Find dead code in your project",
+  "author": {
+    "name": "Veikko Suhonen"
+  },
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "bin": {
     "js-project-analyser": "./dist/index.js"
   },
@@ -11,7 +18,8 @@
     "lint": "tsc",
     "test": "vitest run",
     "build": "tsup src/index.ts --format cjs,esm --dts",
-    "ci": "pnpm run lint && pnpm run test && pnpm run build"
+    "ci": "pnpm run lint && pnpm run test && pnpm run build",
+    "release": "pnpm run lint && pnpm run test && pnpm run build && changeset publish"
   },
   "devDependencies": {
     "@total-typescript/ts-reset": "^0.5.1",
@@ -23,6 +31,34 @@
   "dependencies": {
     "@babel/parser": "^7.23.6",
     "@babel/traverse": "^7.23.7",
-    "@babel/types": "^7.23.6"
-  }
+    "@babel/types": "^7.23.6",
+    "@changesets/cli": "^2.27.1"
+  },
+  "keywords": [
+    "javascript",
+    "js",
+    "typescript",
+    "ts",
+    "dead code",
+    "dead",
+    "code",
+    "unused",
+    "unused code",
+    "dead code",
+    "find dead code",
+    "find unused code",
+    "find unused",
+    "find dead",
+    "find unused variables",
+    "find unused functions",
+    "find unused classes",
+    "find unused interfaces",
+    "find unused types",
+    "find unused enums",
+    "find unused constants",
+    "find unused imports",
+    "find unused exports",
+    "find unused files",
+    "find unused modules"
+  ]
 }
