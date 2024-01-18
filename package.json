@@ -1,5 +1,5 @@
 {
-  "name": "@veikkosuhonen/no-dead-code",
+  "name": "no-dead-code",
   "version": "0.2.1",
   "description": "Find dead code in your project",
   "author": {
@@ -36,6 +36,8 @@
     "@babel/types": "^7.23.6"
   },
   "keywords": [
+    "refactoring",
+    "refactor",
     "javascript",
     "js",
     "typescript",
