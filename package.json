@@ -1,6 +1,6 @@
 {
   "name": "@veikkosuhonen/no-dead-code",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Find dead code in your project",
   "author": {
     "name": "Veikko Suhonen"
@@ -21,8 +21,7 @@
     "test": "vitest run",
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "ci": "pnpm run lint && pnpm run test && pnpm run build",
-    "ci:version": "pnpm changeset version",
-    "ci:publish": "pnpm publish -r"
+    "publish": "rm -r dist && pnpm run ci && pnpm publish --access public"
   },
   "devDependencies": {
     "@total-typescript/ts-reset": "^0.5.1",
