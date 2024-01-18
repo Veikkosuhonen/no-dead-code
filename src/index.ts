@@ -2,7 +2,6 @@
 
 import { analyse } from "./lib/analyser.js";
 import { parseDirectory } from "./lib/parser.js";
-import { isDeno } from "./lib/config.js";
 import { printUnusedExports } from "./lib/printer.js";
 
 const main = async (args: string[]) => {
