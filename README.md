@@ -2,7 +2,9 @@
 
 Reports unused exports in JS/TS files.
 
-Supports both ES and commonjs modules out of the box (TODO).
+Supports both ES and CommonJS modules out of the box.
+
+Only relative import paths are supported at the moment.
 
 ## Usage
 
