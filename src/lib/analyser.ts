@@ -184,10 +184,5 @@ export const analyse = (files: (ParsedFile|ParsedDirectory)[]) => {
 
     walkImports(sourceDir);
 
-    // Report unused exports
-    allSourceFiles.forEach(file => {
-        if (file.moduleInfo?.unusedExports.length) {
-            console.log(`${file.path}: Unused exports: ${file.moduleInfo.unusedExports.join(", ")}`);
-        }
-    })
+    return allSourceFiles
 }

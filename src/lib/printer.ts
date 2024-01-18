@@ -1,17 +1,10 @@
-import { ParsedDirectory, ParsedFile } from "./parser.js";
+import { ParsedFile } from "./parser.js";
 
-type TreeNode = ParsedFile | ParsedDirectory;
-
-const walk = (tree: TreeNode, indent: number = 1) => {
-    if (tree.type === "file") {
-        console.log(Array(indent).join('.'), tree.name);
-        return;
-    } else {
-        console.log(Array(indent).join('.'), tree.name);
-        tree.children.forEach(child => walk(child, indent + 1));
-    }
-}
-
-export const printTree = (tree: TreeNode) => {
-    walk(tree);
+export const printUnusedExports = (sourceFiles: ParsedFile[]) => {
+    // Report unused exports
+    sourceFiles.forEach(file => {
+        if (file.moduleInfo?.unusedExports.length) {
+            console.log(`${file.path}: Unused exports: ${file.moduleInfo.unusedExports.join(", ")}`);
+        }
+    })
 }

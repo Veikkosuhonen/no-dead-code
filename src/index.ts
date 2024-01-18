@@ -3,6 +3,7 @@
 import { analyse } from "./lib/analyser.js";
 import { parseDirectory } from "./lib/parser.js";
 import { isDeno } from "./lib/config.js";
+import { printUnusedExports } from "./lib/printer.js";
 
 const getArgs = () => {
     /* @ts-ignore */
@@ -23,7 +24,9 @@ const main = async (args: string[]) => {
         ignore: ['node_modules', '.git']
     });
 
-    analyse(result);
+    const sourceFiles = analyse(result);
+
+    printUnusedExports(sourceFiles);
 }
 
 main(getArgs()).catch(err => {
