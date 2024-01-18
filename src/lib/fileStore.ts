@@ -22,7 +22,7 @@ export const readDir = async (dir: string, extensions: string[], ignore: string[
 
   const results = await Promise.all(files.filter(
     file => !ignore.includes(file)
-  ).map(async file => {
+  ).map(async (file: string): Promise<Directory|SourceFile|null> => {
     const filePath = path.join(dir, file)
     const stats = await fs.promises.stat(filePath)
 
@@ -47,5 +47,5 @@ export const readDir = async (dir: string, extensions: string[], ignore: string[
     }
   }))
 
-  return results.filter(Boolean) as (SourceFile|Directory)[]
+  return results.filter(Boolean)
 }

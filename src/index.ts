@@ -5,13 +5,6 @@ import { parseDirectory } from "./lib/parser.js";
 import { isDeno } from "./lib/config.js";
 import { printUnusedExports } from "./lib/printer.js";
 
-const getArgs = () => {
-    /* @ts-ignore */
-    const args = isDeno() ? Deno.args : process.argv as any as string[];
-
-    return args;
-}
-
 const main = async (args: string[]) => {
     let path = args[2];
     if (!path) {
@@ -29,7 +22,7 @@ const main = async (args: string[]) => {
     printUnusedExports(sourceFiles);
 }
 
-main(getArgs()).catch(err => {
+main(process.argv).catch(err => {
   console.error(err)
   process.exit(1)
 })

@@ -22,7 +22,7 @@ const findFile = (files: (ParsedFile|ParsedDirectory)[], segments: string[]): Pa
 }
 
 const findExportedIdentifiers = (file: ParsedFile) => {
-    const exports = [] as string[];
+    const exports: string[] = [];
 
     traverse(file.ast, {
         enter(path) {
@@ -33,12 +33,12 @@ const findExportedIdentifiers = (file: ParsedFile) => {
                 case "ExportNamedDeclaration":
                     if (path.declaration?.type === "VariableDeclaration") {
                         exports.push(
-                            ...path.declaration.declarations.map(decl => decl.id.type === "Identifier" ? decl.id.name : undefined).filter(Boolean) as string[]
+                            ...path.declaration.declarations.map(decl => decl.id.type === "Identifier" ? decl.id.name : undefined).filter(Boolean)
                         );
                     }
                     if (path.specifiers) {
                         exports.push(
-                            ...path.specifiers.map(specifier => specifier.exported.type === "Identifier" ? specifier.exported.name : undefined).filter(Boolean) as string[]
+                            ...path.specifiers.map(specifier => specifier.exported.type === "Identifier" ? specifier.exported.name : undefined).filter(Boolean)
                         );
                     }
                     break;
