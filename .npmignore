@@ -3,3 +3,4 @@ src
 .github
 .gitignore
 pnpm-lock.yaml
+tsconfig.json
