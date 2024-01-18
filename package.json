@@ -7,6 +7,10 @@
     "name": "Veikko Suhonen"
   },
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Veikkosuhonen/no-dead-code"
+  },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
