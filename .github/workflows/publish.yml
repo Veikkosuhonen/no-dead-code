@@ -15,13 +15,14 @@ jobs:
           version: latest
       - uses: actions/setup-node@v3
         with:
-          node-version: '16.x'
-          cache: 'pnpm'
+          node-version-file: ".nvmrc"
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
       - name: Publish
         run: |
           pnpm install
           pnpm run build
-          pnpm publish --access public
+          pnpm publish --access public --no-git-checks
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
