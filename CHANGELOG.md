@@ -1,5 +1,11 @@
 # @veikkosuhonen/no-dead-code
 
+## 0.2.4
+
+### Patch Changes
+
+- 775057d: Publiiiish
+
 ## 0.2.3
 
 ### Patch Changes
