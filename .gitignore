@@ -5,6 +5,7 @@ dist
 .vercel
 .netlify
 netlify
+.pnpm-store
 
 # Environment
 .env

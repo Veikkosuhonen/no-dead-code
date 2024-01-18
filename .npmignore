@@ -4,3 +4,4 @@ src
 .gitignore
 pnpm-lock.yaml
 tsconfig.json
+.pnpm-store
