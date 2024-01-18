@@ -22,7 +22,7 @@
     "test": "vitest run",
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "ci": "pnpm run lint && pnpm run test && pnpm run build",
-    "release": "pnpm run lint && pnpm run test && pnpm run build && changeset publish"
+    "ci:publish": "pnpm publish -r"
   },
   "devDependencies": {
     "@total-typescript/ts-reset": "^0.5.1",
