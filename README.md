@@ -18,3 +18,10 @@ Example output
 src/client/util/common.js: Unused exports: colors, CONFIG_NAME
 src/client/pages/FeedbackTarget/tabs/Results/QuestionResults/utils.js: Unused exports: countAverage, countStandardDeviation, countMedian
 ```
+
+## Todo
+
+- CommonJS modules
+- Formatted & colored output
+- CLI options for includes/excludes/file extensions
+- Deeper usage search
