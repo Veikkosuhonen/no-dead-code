@@ -6,8 +6,10 @@ Supports both ES and commonjs modules out of the box (TODO).
 
 ## Usage
 
+In a project's root, run:
+
 ```sh
-$ npx no-dead-code
+$ npx @veikkosuhonen/no-dead-code
 ```
 
 Example output
