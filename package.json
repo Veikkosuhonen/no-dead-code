@@ -1,6 +1,6 @@
 {
   "name": "@veikkosuhonen/no-dead-code",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Find dead code in your project",
   "private": "false",
   "author": {

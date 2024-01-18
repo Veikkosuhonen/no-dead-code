@@ -1,5 +1,11 @@
 # @veikkosuhonen/no-dead-code
 
+## 0.2.3
+
+### Patch Changes
+
+- Just publish please
+
 ## 0.2.2
 
 ### Patch Changes
