@@ -1,5 +1,11 @@
 # @veikkosuhonen/no-dead-code
 
+## 0.2.1
+
+### Patch Changes
+
+- 7585906: Changesets mayhem
+
 ## 0.2.0
 
 ### Minor Changes
