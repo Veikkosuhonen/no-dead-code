@@ -10,9 +10,7 @@
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "bin": {
-    "js-project-analyser": "./dist/index.js"
-  },
+  "bin":  "./dist/index.js",
   "scripts": {
     "dev": "tsc -w",
     "link": "pnpm link --global",

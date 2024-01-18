@@ -2,10 +2,12 @@
 
 Reports unused exports in JS/TS files.
 
+Supports both ES and commonjs modules out of the box (TODO).
+
 ## Usage
 
 ```sh
-$ js-project-analyser
+$ npx no-dead-code
 ```
 
 Example output
