@@ -1,5 +1,11 @@
 # @veikkosuhonen/no-dead-code
 
+## 0.2.0
+
+### Minor Changes
+
+- 7ea2ede: No subcommand
+
 ## 0.1.2
 
 ### Patch Changes

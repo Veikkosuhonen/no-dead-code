@@ -1,6 +1,6 @@
 {
   "name": "@veikkosuhonen/no-dead-code",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Find dead code in your project",
   "private": "false",
   "author": {
@@ -10,7 +10,7 @@
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
-  "bin":  "./dist/index.js",
+  "bin": "./dist/index.js",
   "scripts": {
     "dev": "tsc -w",
     "link": "pnpm link --global",
