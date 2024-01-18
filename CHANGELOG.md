@@ -1,5 +1,11 @@
 # @veikkosuhonen/no-dead-code
 
+## 0.2.2
+
+### Patch Changes
+
+- 8a52ef8: Add repo info to package.json
+
 ## 0.2.1
 
 ### Patch Changes
