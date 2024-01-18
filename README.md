@@ -1,3 +1,6 @@
+[![npm version](https://img.shields.io/npm/v/@veikkosuhonen/no-dead-code.svg?style=flat)](https://www.npmjs.com/package/@veikkosuhonen/no-dead-code)
+[![CI](https://github.com/Veikkosuhonen/no-dead-code/actions/workflows/main.yml/badge.svg)](https://github.com/Veikkosuhonen/no-dead-code/actions/workflows/main.yml)
+
 # Dead code search tool
 
 Reports unused exports in JS/TS files.
