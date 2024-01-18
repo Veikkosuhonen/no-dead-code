@@ -2,6 +2,7 @@
   "name": "@veikkosuhonen/no-dead-code",
   "version": "0.1.0",
   "description": "Find dead code in your project",
+  "private": "false",
   "author": {
     "name": "Veikko Suhonen"
   },
