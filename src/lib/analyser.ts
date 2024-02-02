@@ -1,5 +1,5 @@
 import { traverse, ObjectProperty, Node, CallExpression, Identifier, StringLiteral, Expression, V8IntrinsicIdentifier } from "@babel/types";
-import { ImportInfo, ParsedDirectory, ParsedFile } from "./parser.js";
+import { ConfigObject, ImportInfo, ParsedDirectory, ParsedFile } from "./parser.js";
 
 const findFile = (files: (ParsedFile|ParsedDirectory)[], segments: string[]): ParsedFile|ParsedDirectory|undefined => {
     const [segment, ...rest] = segments;
@@ -280,7 +280,7 @@ export const analyse = (root: ParsedDirectory) => {
                 findAndMarkImport(child, rest, importInfo);
             } else {
                 // n import from node_modules
-                // console.log(`Could not find child ${segment} for ${file.name}`);
+                console.log(`Could not find child ${segment} for ${file.name} (${importInfo.from})`);
             }
         }
     }
@@ -288,16 +288,23 @@ export const analyse = (root: ParsedDirectory) => {
     const findAndMarkNonRelativeImport = (file: ParsedDirectory, pathSegments: string[], importInfo: ImportInfo) => {
         // find the root directory specified in compilerOptions.baseUrl of js/tsconfig
         // Search compilerOptions.baseUrl from configs
-        const config = file.configs.find(c => Boolean(c.config.compilerOptions?.baseUrl))?.config
-        if (config) {
-            const { baseUrl } = config.compilerOptions
+        const jsconfig = file.configs.find(c => Boolean(c.config.compilerOptions?.baseUrl))?.config
+        const packageJsonDeps = file.configs.find(c => Boolean(c.config.dependencies))?.config?.dependencies ?? {}
+        // console.log(packageJsonDeps)
+
+        if (Object.keys(packageJsonDeps).some(dep => dep.split('/')[0] === importInfo.from.split('/')[0])) {
+            // console.log(Object.keys(packageJsonDeps))
+            // Ok, dep found
+        } else if (jsconfig) {
+            const { baseUrl } = jsconfig.compilerOptions
             // Add ./{baseUrl} to the segments and start relative search
             findAndMarkImport(file, ['.', baseUrl].concat(pathSegments), importInfo)
         } else if (file.parent) {
             // config not yet found, go look for it from parent dir
             findAndMarkNonRelativeImport(file.parent, pathSegments, importInfo)
         } else {
-            // This is likely a node_module dep
+            // This is an error
+            console.error(`Could not find dependency ${importInfo.from} (${pathSegments})`);
         }
     }
 

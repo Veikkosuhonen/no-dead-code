@@ -79,8 +79,6 @@ export const parseDirectory = async ({
       const configs = allChildren.filter(f => f.type === "config") as ConfigObject[]
       const children = allChildren.filter(f => f.type !== "config") as (ParsedFile|ParsedFile)[]
 
-      // console.log(configs)
-
       const parsedDirectory = {
         ...file,
         children,
