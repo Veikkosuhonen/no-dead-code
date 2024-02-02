@@ -205,7 +205,6 @@ const findImportedIdentifiers = (file: ParsedFile) => {
                 // import("wtf")
                 case "CallExpression":
                     if (path.callee.type === "Import") { // ES module import()
-                        console.log(path.arguments)
                         const fromArg = path.arguments[0]
                         if (fromArg.type === "StringLiteral") {
                             imports.push({
