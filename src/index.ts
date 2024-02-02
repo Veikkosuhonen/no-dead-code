@@ -1,19 +1,32 @@
 #!/usr/bin/env node
 
+import { program } from "commander"
 import { analyse } from "./lib/analyser.js";
 import { parseDirectory } from "./lib/parser.js";
 import { printUnusedExports } from "./lib/printer.js";
 
-const main = async (args: string[]) => {
-    let path = args[2];
-    if (!path) {
-        path = '.';
-    }
+program
+    .name('no-dead-code')
+    .description('Search unused exports in your code')
+    .argument('[path]', 'the path to begin search from', '.')
+    .option('--no-default-ignore', 'specify to allow node_modules, .git, dist, build and migrations to be included')
+    .option('-i, --ignore <ignorePaths...>', 'specify paths to ignore')
+    .option('-e, --extensions <extensions...>', 'specify the extensions to include', ['cjs', 'js', 'ts', 'tsx', 'jsx'])
+    .parse()
+
+
+const path = program.processedArgs[0]
+const opts = program.opts()
+
+;(async () => {
+    const extensions = opts.extensions ?? []
+    const ignore = opts.ignore ?? []
+    if (opts.defaultIgnore) ignore.push('node_modules', '.git', 'dist', 'build', 'migrations')
 
     const result = await parseDirectory({
         path, 
-        extensions: ['cjs', 'js', 'ts', 'tsx', 'jsx'],
-        ignore: ['node_modules', '.git', 'migrations', 'dist', 'build']
+        extensions,
+        ignore,
     });
 
     const sourceFiles = analyse(result);
@@ -24,9 +37,4 @@ const main = async (args: string[]) => {
     }
 
     printUnusedExports(sourceFiles);
-}
-
-main(process.argv).catch(err => {
-  console.error(err)
-  process.exit(1)
-})
+})()

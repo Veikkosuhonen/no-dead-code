@@ -14,7 +14,7 @@ Only relative import paths are supported at the moment.
 In a project's root, run:
 
 ```sh
-$ npx @veikkosuhonen/no-dead-code
+$ npx no-dead-code
 ```
 
 Example output
