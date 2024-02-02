@@ -117,7 +117,11 @@ const findImportedIdentifiers = (file: ParsedFile) => {
                     imports.push(
                         ...path.specifiers.map(specifier => {
                             if (specifier.type === "ImportSpecifier") {
-                                return { as: specifier.local.name, from: path.source.value } 
+                                const as = specifier.imported.type === "Identifier"
+                                    ? specifier.imported.name
+                                    : specifier.imported.value
+
+                                return { as, from: path.source.value } 
                             } else if (specifier.type === "ImportDefaultSpecifier") {
                                 return { as: "default", from: path.source.value } 
                             }
