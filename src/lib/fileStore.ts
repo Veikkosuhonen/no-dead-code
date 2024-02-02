@@ -1,6 +1,15 @@
 import fs from 'node:fs';
 import path from "node:path"
 
+export type ProjectFile = ConfigFile|SourceFile|Directory
+
+export type ConfigFile = {
+  type: "config"
+  name: string
+  path: string
+  config: object
+}
+
 export type SourceFile = {
   type: "file"
   name: string
@@ -12,7 +21,7 @@ export type Directory = {
   type: "directory"
   name: string
   path: string
-  children: (SourceFile|Directory)[]
+  children: ProjectFile[]
 }
 
 export const readDir = async (dir: string, extensions: string[], ignore: string[]): Promise<Directory> => {
@@ -22,7 +31,7 @@ export const readDir = async (dir: string, extensions: string[], ignore: string[
 
   const results = await Promise.all(files.filter(
     file => !ignore.includes(file)
-  ).map(async (file: string): Promise<Directory|SourceFile|null> => {
+  ).map(async (file: string): Promise<ProjectFile|null> => {
     const filePath = path.join(dir, file)
     const stats = await fs.promises.stat(filePath)
 
@@ -40,6 +49,14 @@ export const readDir = async (dir: string, extensions: string[], ignore: string[
         name: file,
         path: filePath,
         content: await fs.promises.readFile(filePath, "utf-8")
+      }
+
+    } else if (file.match(new RegExp(`(tsconfig|jsconfig|package).json`))) {
+      return {
+        type: "config",
+        name: file,
+        path: filePath,
+        config: JSON.parse(await fs.promises.readFile(filePath, "utf-8")) as object
       }
 
     } else {

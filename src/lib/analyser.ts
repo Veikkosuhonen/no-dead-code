@@ -121,7 +121,7 @@ const findImportedIdentifiers = (file: ParsedFile) => {
                             } else if (specifier.type === "ImportDefaultSpecifier") {
                                 return { as: "default", from: path.source.value } 
                             }
-                        }).filter(spec => spec && spec.from.startsWith(".")) as ImportInfo[]
+                        }).filter(Boolean)
                     );
                     break;
 
@@ -157,7 +157,6 @@ const findImportedIdentifiers = (file: ParsedFile) => {
                             if (!requireCall) return;
                             const from = requireCall.arguments[0].value;
                             // Only allow relative imports
-                            if (!from.startsWith(".")) return;
 
                             // Default import
                             if (decl.id.type === "Identifier") {
@@ -185,8 +184,6 @@ const findImportedIdentifiers = (file: ParsedFile) => {
                     const requireCall = getRequireCall(path.expression.right);
                     if (!requireCall) return;
                     const from = requireCall.arguments[0].value;
-                    // Only allow relative imports
-                    if (!from.startsWith(".")) return;
                     // Default import
                     imports.push({ as: "default", from, type: "cjs" });
                     break;
@@ -206,8 +203,6 @@ const findImportedIdentifiers = (file: ParsedFile) => {
                     if (!requireCall2) return;
 
                     const from2 = requireCall2.arguments[0].value;
-                    // Only allow relative imports
-                    if (!from2.startsWith(".")) return;
                     // Default import
                     imports.push({ as: "default", from: from2, type: "cjs" });
             }
@@ -284,15 +279,32 @@ export const analyse = (root: ParsedDirectory) => {
             if (child) {
                 findAndMarkImport(child, rest, importInfo);
             } else {
-                console.log(`Could not find child ${segment} for ${file.name}`);
+                // n import from node_modules
+                // console.log(`Could not find child ${segment} for ${file.name}`);
             }
+        }
+    }
+
+    const findAndMarkNonRelativeImport = (file: ParsedDirectory, pathSegments: string[], importInfo: ImportInfo) => {
+        // find the root directory specified in compilerOptions.baseUrl of js/tsconfig
+        // Search compilerOptions.baseUrl from configs
+        const config = file.configs.find(c => Boolean(c.config.compilerOptions?.baseUrl))?.config
+        if (config) {
+            const { baseUrl } = config.compilerOptions
+            // Add ./{baseUrl} to the segments and start relative search
+            findAndMarkImport(file, ['.', baseUrl].concat(pathSegments), importInfo)
+        } else if (file.parent) {
+            // config not yet found, go look for it from parent dir
+            findAndMarkNonRelativeImport(file.parent, pathSegments, importInfo)
+        } else {
+            // This is likely a node_module dep
         }
     }
 
     const walkImports = (file: ParsedFile|ParsedDirectory, path: string[] = []) => {
         if (file.type === "file") {
             file.moduleInfo?.imports.forEach(importInfo => {
-                const relativePathSegments = importInfo.from.split("/");
+                const pathSegments = importInfo.from.split("/");
 
                 // console.log(`Searching import ${importInfo.from} starting from ${path.join("/")} by ${relativePathSegments.join("/")}`);
 
@@ -301,7 +313,11 @@ export const analyse = (root: ParsedDirectory) => {
                     return;
                 }
 
-                findAndMarkImport(file.parent, relativePathSegments, importInfo);
+                if (pathSegments[0].startsWith('.')) {
+                    findAndMarkImport(file.parent, pathSegments, importInfo);
+                } else {
+                    findAndMarkNonRelativeImport(file.parent, pathSegments, importInfo);
+                }
             })
         } else {
             file.children.forEach(child => walkImports(child, [...path, child.name]));

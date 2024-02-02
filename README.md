@@ -79,7 +79,6 @@ someFunction(require('./foo')) // everything imported from './foo'
 ## Todo
 
 - Formatted & colored output
-- CLI options for includes/excludes/file extensions
 - Path aliases
 - Absolute paths
 - Dynamic imports
