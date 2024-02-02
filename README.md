@@ -24,6 +24,24 @@ src/client/util/common.js: Unused exports: colors, CONFIG_NAME
 src/client/pages/FeedbackTarget/tabs/Results/QuestionResults/utils.js: Unused exports: countAverage, countStandardDeviation, countMedian
 ```
 
+## Options
+
+### `--extensions` (`-e`)
+
+Specify which extensions are included.
+
+Default: `cjs js ts tsx jsx`
+
+### `--ignore` (`-i`)
+
+Specify which paths are ignored.
+
+By default, `node_modules`, `.git`, `dist`, `build`, `migrations` are always ignored. Values passed to `-i` are added to these.
+
+### `--no-default-ignore`
+
+Turn off the default ignores `node_modules`, `.git`, `dist`, `build`, `migrations`.
+
 ## Caveats
 
 no-dead-code is far from complete, that's why its "best effort". The goal is to cover most typical coding standards, but it will inevitably output false positives and miss unused exports.
