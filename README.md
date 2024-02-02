@@ -1,13 +1,11 @@
 [![npm version](https://img.shields.io/npm/v/@veikkosuhonen/no-dead-code.svg?style=flat)](https://www.npmjs.com/package/@veikkosuhonen/no-dead-code)
 [![CI](https://github.com/Veikkosuhonen/no-dead-code/actions/workflows/main.yml/badge.svg)](https://github.com/Veikkosuhonen/no-dead-code/actions/workflows/main.yml)
 
-# Dead code search tool
+# no-dead-code
 
 Reports unused exports in JS/TS files.
 
 Supports both ES and CommonJS modules out of the box.
-
-Only relative import paths are supported at the moment.
 
 ## Usage
 
@@ -30,7 +28,7 @@ src/client/pages/FeedbackTarget/tabs/Results/QuestionResults/utils.js: Unused ex
 
 Specify which extensions are included.
 
-Default: `cjs js ts tsx jsx`
+Default: `mjs cjs js ts tsx jsx`
 
 ### `--ignore` (`-i`)
 
