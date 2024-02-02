@@ -24,6 +24,10 @@ export type Directory = {
   children: ProjectFile[]
 }
 
+const evalJsonObject = (source: string) => {
+  return eval(`const a = ${source}; a`)
+}
+
 export const readDir = async (dir: string, extensions: string[], ignore: string[]): Promise<Directory> => {
   const cwd = process.cwd()
   const rootPath = path.join(cwd, dir)
@@ -56,7 +60,7 @@ export const readDir = async (dir: string, extensions: string[], ignore: string[
         type: "config",
         name: file,
         path: filePath,
-        config: JSON.parse(await fs.promises.readFile(filePath, "utf-8")) as object
+        config: evalJsonObject(await fs.promises.readFile(filePath, "utf-8"))
       }
 
     } else {
