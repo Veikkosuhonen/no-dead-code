@@ -77,10 +77,13 @@ someFunction(require('./foo')) // everything imported from './foo'
 
 For absolute paths, the closest parent package.json and js/tsconfig are searched to resolve external dependencies and `compilerOptions.baseUrl`.
 
+The config files are `eval`uated. Do not run this in a codebase that you do not trust.
+
+NodeJS APIs are not yet supported and will be reported as not found.
+
 ### Path aliases
 
 TODO
-
 
 ## Todo
 
