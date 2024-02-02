@@ -87,7 +87,7 @@ interface RequireCall extends CallExpression {
     arguments: [StringLiteral]
 }
 
-const getRequireCall = (path: Expression|V8IntrinsicIdentifier): RequireCall|undefined => {
+const getRequire = (path: Expression|V8IntrinsicIdentifier): RequireCall|undefined => {
     if (path.type !== "CallExpression") return
     if (path.callee.type !== "Identifier") return;
     if (path.callee.name !== "require") return;
@@ -157,8 +157,9 @@ const findImportedIdentifiers = (file: ParsedFile) => {
                     const type = "cjs"
                     path.declarations.forEach(decl => {
                         if (decl.type === "VariableDeclarator") {
-                            const requireCall = decl.init ? getRequireCall(decl.init) : undefined;
+                            const requireCall = decl.init ? getRequire(decl.init) : undefined;
                             if (!requireCall) return;
+
                             const from = requireCall.arguments[0].value;
                             // Only allow relative imports
 
@@ -184,31 +185,51 @@ const findImportedIdentifiers = (file: ParsedFile) => {
                 // CommonJS require
                 // module.exports = require("./bar")
                 case "ExpressionStatement":
-                    if (path.expression.type !== "AssignmentExpression") return
-                    const requireCall = getRequireCall(path.expression.right);
-                    if (!requireCall) return;
-                    const from = requireCall.arguments[0].value;
-                    // Default import
-                    imports.push({ as: "default", from, type: "cjs" });
+                    if (path.expression.type === "AssignmentExpression") {
+                        const requireCall = getRequire(path.expression.right);
+                        if (!requireCall) return;
+                        const from = requireCall.arguments[0].value;
+                        // Default import
+                        imports.push({ as: "default", from, type: "cjs" });
+                    } else if (path.expression.type === "MemberExpression") {
+                        const requireCall = getRequire(path.expression.object);
+                        if (!requireCall) return;
+                        const from = requireCall.arguments[0].value;
+                        // Default import
+                        imports.push({ as: "default", from, type: "cjs" });
+                    }
                     break;
                 
-                // CommonJS require
-                // require("./bar")()
+                // CommonJS require or ES module dynamic import
+                // require("./bar")(), f(require("./bar"))
+                // import("wtf")
                 case "CallExpression":
-                    // Is it being called?
-                    let requireCall2 = getRequireCall(path.callee)
-                    if (!requireCall2) {
-                        // Or is it being passed as an argument?
-                        for (const arg of path.arguments) {
-                            requireCall2 = arg.type === "CallExpression" ? getRequireCall(arg) : undefined;
-                            if (requireCall2) break;
+                    if (path.callee.type === "Import") { // ES module import()
+                        console.log(path.arguments)
+                        const fromArg = path.arguments[0]
+                        if (fromArg.type === "StringLiteral") {
+                            imports.push({
+                                as: "*", // Special case, too hard to determine what is imported so just assume everything
+                                from: fromArg.value,
+                                type: "esm"
+                            })
                         }
-                    }
-                    if (!requireCall2) return;
+                    } else { // CommonJS
+                        // Is it being called?
+                        let requireCall2 = getRequire(path.callee)
+                        if (!requireCall2) {
+                            // Or is it being passed as an argument?
+                            for (const arg of path.arguments) {
+                                requireCall2 = arg.type === "CallExpression" ? getRequire(arg) : undefined;
+                                if (requireCall2) break;
+                            }
+                        }
+                        if (!requireCall2) return;
 
-                    const from2 = requireCall2.arguments[0].value;
-                    // Default import
-                    imports.push({ as: "default", from: from2, type: "cjs" });
+                        const from2 = requireCall2.arguments[0].value;
+                        // Default import
+                        imports.push({ as: "default", from: from2, type: "cjs" });
+                    }
             }
         },
     })
@@ -240,6 +261,11 @@ export const analyse = (root: ParsedDirectory) => {
         if (file.moduleInfo?.unusedExports) {
             // If this is a CJS "default" import, consider all exports used
             if (importInfo.type === "cjs" && importInfo.as === "default") {
+                file.moduleInfo.unusedExports = [];
+                return;
+            }
+            // If this is a ES * import, consider all exports used
+            if (importInfo.type === "esm" && importInfo.as === "*") {
                 file.moduleInfo.unusedExports = [];
                 return;
             }
