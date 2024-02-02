@@ -48,7 +48,7 @@ no-dead-code is far from complete, that's why its "best effort". The goal is to 
 
 ### ES modules
 
-Only import & export declarations are supported. Call expressions (dynamic imports) are not.
+Import and export declarations work pretty well. Dynamic imports are considered to import just everything.
 
 ### CommonJS
 
@@ -75,11 +75,16 @@ require('./foo')() // everything imported from './foo'
 someFunction(require('./foo')) // everything imported from './foo'
 ```
 
+### Absolute paths
+
+For absolute paths, the closest parent package.json and js/tsconfig are searched to resolve external dependencies and `compilerOptions.baseUrl`.
+
+### Path aliases
+
+TODO
+
 
 ## Todo
 
 - Formatted & colored output
-- Path aliases
-- Absolute paths
-- Dynamic imports
 - Deeper usage search
