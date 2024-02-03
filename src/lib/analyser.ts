@@ -1,5 +1,5 @@
-import { traverse, ObjectProperty, Node, CallExpression, Identifier, StringLiteral, Expression, V8IntrinsicIdentifier } from "@babel/types";
-import { ConfigObject, ImportInfo, ParsedDirectory, ParsedFile } from "./parser.js";
+import { traverse, CallExpression, Identifier, StringLiteral, Expression, V8IntrinsicIdentifier } from "@babel/types";
+import { ImportInfo, ParsedDirectory, ParsedFile } from "./parser.js";
 
 const findFile = (files: (ParsedFile|ParsedDirectory)[], segments: string[]): ParsedFile|ParsedDirectory|undefined => {
     const [segment, ...rest] = segments;
@@ -304,9 +304,18 @@ export const analyse = (root: ParsedDirectory) => {
                 return;
             }
     
-            const child = file.children.find(child => child.name.match(new RegExp(`^${segment}\\.?`)));
-            if (child) {
-                findAndMarkImport(child, rest, importInfo);
+            const matchingChildren = file.children.filter(child => child.name.match(new RegExp(`^${segment}\\.?`)));
+            
+            // If this is the last segment, go to the file. Else go to the directory
+            const childFile = matchingChildren.find(f => f.type === "file")
+            const childDir = matchingChildren.find(f => f.type === "directory")
+
+            if (rest.length === 0 && childFile) {
+                // console.log(childFile.name)
+                findAndMarkImport(childFile, rest, importInfo);
+            } else if (childDir) {
+                // console.log(childDir.name)
+                findAndMarkImport(childDir, rest, importInfo);
             } else {
                 // n import from node_modules
                 console.log(`Could not find child ${segment} for ${file.name} (${importInfo.from})`);
@@ -361,6 +370,8 @@ export const analyse = (root: ParsedDirectory) => {
     }
 
     walkImports(root);
+
+    console.log("DEBUG")
 
     return allSourceFiles
 }

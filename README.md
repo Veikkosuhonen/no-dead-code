@@ -1,4 +1,4 @@
-[![npm version](https://img.shields.io/npm/v/@veikkosuhonen/no-dead-code.svg?style=flat)](https://www.npmjs.com/package/@veikkosuhonen/no-dead-code)
+[![npm version](https://img.shields.io/npm/v/no-dead-code.svg?style=flat)](https://www.npmjs.com/package/@veikkosuhonen/no-dead-code)
 [![CI](https://github.com/Veikkosuhonen/no-dead-code/actions/workflows/main.yml/badge.svg)](https://github.com/Veikkosuhonen/no-dead-code/actions/workflows/main.yml)
 
 # no-dead-code
