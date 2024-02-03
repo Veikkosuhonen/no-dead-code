@@ -40,6 +40,10 @@ By default, `node_modules`, `.git`, `dist`, `build`, `migrations` are always ign
 
 Turn off the default ignores `node_modules`, `.git`, `dist`, `build`, `migrations`.
 
+### `--no-node-stdlib`
+
+Do not resolve node standard lib dependencies. They are hardcoded, see `src/index.ts` for the list which may be incomprehensive.
+
 ## Caveats
 
 no-dead-code is far from complete, that's why its "best effort". The goal is to cover most typical coding standards, but it will inevitably output false positives and miss unused exports.

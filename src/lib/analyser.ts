@@ -240,7 +240,7 @@ const findImportedIdentifiers = (file: ParsedFile) => {
     })
 }
 
-export const analyse = (root: ParsedDirectory) => {
+export const analyse = (root: ParsedDirectory, standardLib: string[]) => {
     const allSourceFiles: ParsedFile[] = []
 
     const walkFiles = (file: ParsedFile|ParsedDirectory, path: string[] = []) => {
@@ -333,6 +333,8 @@ export const analyse = (root: ParsedDirectory) => {
         if (Object.keys(packageJsonDeps).some(dep => dep.split('/')[0] === importInfo.from.split('/')[0])) {
             // console.log(Object.keys(packageJsonDeps))
             // Ok, dep found
+        } else if (standardLib.includes(importInfo.from.split('/')[0])) {
+            // Ok, standard lib dep found
         } else if (jsconfig) {
             const { baseUrl } = jsconfig.compilerOptions
             // Add ./{baseUrl} to the segments and start relative search
@@ -370,8 +372,6 @@ export const analyse = (root: ParsedDirectory) => {
     }
 
     walkImports(root);
-
-    console.log("DEBUG")
 
     return allSourceFiles
 }
