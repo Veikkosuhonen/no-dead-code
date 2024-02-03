@@ -3,9 +3,11 @@
 
 # no-dead-code
 
-Reports unused exports in JS/TS files.
+Single command to reports unused exports in JS/TS files.
 
 Supports both ES and CommonJS modules out of the box.
+
+The target audience is developers working on refactoring large codebases. Not for script integration since the output is often inaccurate.
 
 ## Usage
 
@@ -46,7 +48,7 @@ Do not resolve node standard lib dependencies. They are hardcoded, see `src/inde
 
 ## Caveats
 
-no-dead-code is far from complete, that's why its "best effort". The goal is to cover most typical coding standards, but it will inevitably output false positives and miss unused exports.
+no-dead-code is far from complete, and should never be relied on blindly. The goal is to cover most typical coding standards, but it will inevitably output false positives and miss unused some exports.
 
 ### ES modules
 
@@ -82,8 +84,6 @@ someFunction(require('./foo')) // everything imported from './foo'
 For absolute paths, the closest parent package.json and js/tsconfig are searched to resolve external dependencies and `compilerOptions.baseUrl`.
 
 The config files are `eval`uated. Do not run this in a codebase that you do not trust.
-
-NodeJS APIs are not yet supported and will be reported as not found.
 
 ### Path aliases
 
