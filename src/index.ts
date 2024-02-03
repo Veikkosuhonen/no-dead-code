@@ -11,6 +11,7 @@ program
     .argument('[path]', 'the path to begin search from', '.')
     .option('--no-default-ignore', 'specify to allow node_modules, .git, dist, build and migrations to be included')
     .option('--no-node-stdlib', 'specify to not resolve to node std APIs')
+    .option('--no-dev', 'specify to not resolve dev dependecies')
     .option('-i, --ignore <ignorePaths...>', 'specify paths to ignore')
     .option('-e, --extensions <extensions...>', 'specify the extensions to include', ['mjs', 'cjs', 'js', 'ts', 'tsx', 'jsx'])
     .parse()
@@ -32,7 +33,7 @@ const opts = program.opts()
 
     const standardLib: string[] = [];
     if (opts.nodeStdlib) standardLib.push('fs', 'os', 'path', 'crypto', 'events', 'util', 'net', 'http', 'https', 'dns', 'url', 'child_process', 'cluster', 'process', 'stream')
-    const sourceFiles = analyse(result, standardLib);
+    const sourceFiles = analyse(result, standardLib, Boolean(opts.dev));
 
     if (sourceFiles.length === 0) {
         console.log("No source files found");

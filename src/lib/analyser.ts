@@ -284,7 +284,7 @@ const resolvePathAlias = (paths: { [alias: string]: string[] }, pathSegments: st
     return resolveds.map(r => r.segments)
 }
 
-export const analyse = (root: ParsedDirectory, standardLib: string[]) => {
+export const analyse = (root: ParsedDirectory, standardLib: string[], allowDevDeps = false) => {
     const allSourceFiles: ParsedFile[] = []
 
     const walkFiles = (file: ParsedFile|ParsedDirectory, path: string[] = []) => {
@@ -378,13 +378,16 @@ export const analyse = (root: ParsedDirectory, standardLib: string[]) => {
         const aliases = file.configs.find(c => Boolean(c.config.compilerOptions?.paths))?.config?.compilerOptions?.paths ?? {}
         const packageJsonAliases = file.configs.find(c => Boolean(c.config._moduleAliases))?.config?._moduleAliases ?? {}
         const packageJsonDeps = file.configs.find(c => Boolean(c.config.dependencies))?.config?.dependencies ?? {}
-        
+        if (allowDevDeps) {
+            Object.assign(packageJsonDeps, file.configs.find(c => Boolean(c.config.devDependencies))?.config?.devDependencies ?? {})
+        }
+
         const resolvedPaths = resolvePathAlias(aliases, pathSegments)
 
         if (Object.keys(packageJsonDeps).some(dep => splitPath(dep)[0] === splitPath(importInfo.from)[0])) {
             // console.log(Object.keys(packageJsonDeps))
             // Ok, dep found
-        } else if (standardLib.includes(splitPath(importInfo.from)[0])) {
+        } else if (standardLib.includes(splitPath(importInfo.from)[0]) || importInfo.from.startsWith('node:')) {
             // Ok, standard lib dep found
         } else if (packageJsonAliases[pathSegments[0]]) {
             // package.json alias found
