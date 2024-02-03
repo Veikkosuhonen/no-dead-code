@@ -1,5 +1,6 @@
 import { traverse, CallExpression, Identifier, StringLiteral, Expression, V8IntrinsicIdentifier } from "@babel/types";
 import { ImportInfo, ParsedDirectory, ParsedFile } from "./parser.js";
+import { warn } from "./logger.js";
 
 const findFile = (files: (ParsedFile|ParsedDirectory)[], segments: string[]): ParsedFile|ParsedDirectory|undefined => {
     const [segment, ...rest] = segments;
@@ -283,7 +284,7 @@ const resolvePathAlias = (paths: { [alias: string]: string[] }, pathSegments: st
 
     return resolveds.map(r => r.segments)
 }
-/*console.log(
+/*warn(
 resolvePathAlias({
         "@controllers/*": [
           "server/controllers/*"
@@ -368,7 +369,7 @@ export const analyse = (root: ParsedDirectory, standardLib: string[], allowDevDe
                     markImport(indexFile, importInfo);
                     return true
                 } else {
-                    console.log(`Could not find index file for ${file.name}`, importInfo.from);
+                    warn(`Could not find index file for ${file.name}`, importInfo.from);
                     return false
                 }
             }
@@ -380,13 +381,13 @@ export const analyse = (root: ParsedDirectory, standardLib: string[], allowDevDe
             if (file.parent) {
                 return findAndMarkImport(file.parent, rest, importInfo);
             } else {
-                console.log(`Could not find parent for ${file.name}`);
+                warn(`Could not find parent for ${file.name}`);
                 return false
             }
 
         } else {
             if (file.type === "file") {
-                console.log(`Could not find child ${segment} for ${file.name} (is not a directory)`);
+                warn(`Could not find child ${segment} for ${file.name} (is not a directory)`);
                 return false;
             }
     
@@ -397,14 +398,14 @@ export const analyse = (root: ParsedDirectory, standardLib: string[], allowDevDe
             const childDir = matchingChildren.find(f => f.type === "directory")
 
             if (rest.length === 0 && childFile) {
-                // console.log(childFile.name)
+                // warn(childFile.name)
                 return findAndMarkImport(childFile, rest, importInfo);
             } else if (childDir) {
-                // console.log(childDir.name)
+                // warn(childDir.name)
                 return findAndMarkImport(childDir, rest, importInfo);
             } else {
                 // n import from node_modules
-                console.log(`Could not find child ${segment} for ${file.name} (${importInfo.from})`);
+                warn(`Could not find child ${segment} for ${file.name} (${importInfo.from})`);
                 return false
             }
         }
@@ -423,11 +424,11 @@ export const analyse = (root: ParsedDirectory, standardLib: string[], allowDevDe
         const resolvedPaths = resolvePathAlias(aliases, pathSegments)
 
         // if (pathSegments.some(s => s.startsWith('socket'))) {
-        //     console.log(importInfo)
+        //     warn(importInfo)
         // }
 
         if (Object.keys(packageJsonDeps).some(dep => splitPath(dep)[0] === splitPath(importInfo.from)[0])) {
-            // console.log(Object.keys(packageJsonDeps))
+            // warn(Object.keys(packageJsonDeps))
             // Ok, dep found
         } else if (standardLib.includes(splitPath(importInfo.from)[0]) || importInfo.from.startsWith('node:')) {
             // Ok, standard lib dep found
@@ -438,7 +439,7 @@ export const analyse = (root: ParsedDirectory, standardLib: string[], allowDevDe
         } else if (resolvedPaths.length > 0) {
             // jsconfig aliases found. Try each and stop when first found.
             for (const resolved of resolvedPaths) {
-                // console.log(resolved, importInfo.from)
+                // warn(resolved, importInfo.from)
                 const segments = [...baseUrl, ...resolved]
                 if (findAndMarkImport(file, segments, importInfo)) {
                     break;
@@ -462,10 +463,10 @@ export const analyse = (root: ParsedDirectory, standardLib: string[], allowDevDe
             file.moduleInfo?.imports.forEach(importInfo => {
                 const pathSegments = splitPath(importInfo.from);
 
-                // console.log(`Searching import ${importInfo.from} starting from ${path.join("/")} by ${relativePathSegments.join("/")}`);
+                // warn(`Searching import ${importInfo.from} starting from ${path.join("/")} by ${relativePathSegments.join("/")}`);
 
                 if (!file.parent) {
-                    console.log(`Could not find parent for ${file.name}. Outside scan range.`);
+                    warn(`Could not find parent for ${file.name}. Outside scan range.`);
                     return;
                 }
 
