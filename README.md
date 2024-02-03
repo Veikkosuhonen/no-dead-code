@@ -48,6 +48,12 @@ Turn off the default ignores `node_modules`, `.git`, `dist`, `build`, `migration
 
 Do not resolve node standard lib dependencies. They are hardcoded, see `src/index.ts` for the list which may be incomprehensive.
 
+Dependencies starting with `node:` are always resolved.
+
+### `--no-dev`
+
+Do not resolve devDependencies in package.json.
+
 ## Caveats
 
 no-dead-code is far from complete, and should never be relied on blindly. The goal is to cover most typical coding standards, but it will inevitably output false positives and miss unused some exports.
@@ -89,7 +95,9 @@ The config files are `eval`uated. Do not run this in a codebase that you do not 
 
 ### Path aliases
 
-Path aliases defined in package.json and/or js/tsconfig = TODO
+js/tsconfig paths are resolved correctly (I think).
+
+In addition, a `_moduleAliases` field in package.json is used to resolve path aliases.
 
 Webpack path aliases = wontfix
 
