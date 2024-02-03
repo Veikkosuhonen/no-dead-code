@@ -31,7 +31,7 @@ const opts = program.opts()
     });
 
     const standardLib: string[] = [];
-    if (opts.nodeStdlib) standardLib.push('fs', 'os', 'crypto', 'events', 'util', 'net', 'http', 'dns', 'url', 'child_process', 'cluster', 'process', 'stream')
+    if (opts.nodeStdlib) standardLib.push('fs', 'os', 'path', 'crypto', 'events', 'util', 'net', 'http', 'https', 'dns', 'url', 'child_process', 'cluster', 'process', 'stream')
     const sourceFiles = analyse(result, standardLib);
 
     if (sourceFiles.length === 0) {

@@ -240,6 +240,50 @@ const findImportedIdentifiers = (file: ParsedFile) => {
     })
 }
 
+const splitPath = (path: string) => path.split('/').filter(Boolean)
+
+const resolvePathAlias = (paths: { [alias: string]: string[] }, pathSegments: string[]): string[][] => {
+    let resolveds: { segments: string[], specifity: number }[] = []
+
+    Object.keys(paths).forEach(alias => {
+        const aliasSegments = splitPath(alias)
+        const tempPathSegments = [...pathSegments]
+        let wildCard: string|undefined // Only one wildcard allowed (tsdocs)
+        let specifity = 0;
+
+        while (tempPathSegments.length > 0) {
+            if (tempPathSegments[0] === aliasSegments[0]) {
+                aliasSegments.shift()
+                tempPathSegments.shift()
+                specifity++;
+            } else if (aliasSegments[0] === '*') {
+                aliasSegments.shift()
+                wildCard = tempPathSegments.shift()
+            } else {
+                break;
+            }
+        }
+
+        // Is it a match?
+        if (aliasSegments.length === 0) {
+            // Remove lower specifity paths
+            resolveds = resolveds.filter(r => r.specifity >= specifity)
+
+            const resolvedPaths = paths[alias]
+            if (resolvedPaths) {
+                resolveds.push(
+                    ...resolvedPaths.map(resolvedPaths => ({
+                        segments: splitPath(resolvedPaths).map(segment => wildCard && segment === '*' ? wildCard : segment),
+                        specifity,
+                    }))
+                )
+            }
+        }
+    })
+
+    return resolveds.map(r => r.segments)
+}
+
 export const analyse = (root: ParsedDirectory, standardLib: string[]) => {
     const allSourceFiles: ParsedFile[] = []
 
@@ -273,35 +317,39 @@ export const analyse = (root: ParsedDirectory, standardLib: string[]) => {
         }
     }
 
-    const findAndMarkImport = (file: ParsedFile|ParsedDirectory, relativePathSegments: string[], importInfo: ImportInfo) => {
+    const findAndMarkImport = (file: ParsedFile|ParsedDirectory, relativePathSegments: string[], importInfo: ImportInfo): boolean => {
         const [segment, ...rest] = relativePathSegments;
 
         if (segment === undefined) {
             if (file.type === "file") {
                 markImport(file, importInfo);
+                return true
             } else {
                 const indexFile = file.children.find(child => child.name.startsWith("index."));
                 if (indexFile?.type === "file") {
                     markImport(indexFile, importInfo);
+                    return true
                 } else {
                     console.log(`Could not find index file for ${file.name}`);
+                    return false
                 }
             }
         
         } else if (segment === ".") {
-            findAndMarkImport(file, rest, importInfo);
+            return findAndMarkImport(file, rest, importInfo);
         
         } else if (segment === "..") {
             if (file.parent) {
-                findAndMarkImport(file.parent, rest, importInfo);
+                return findAndMarkImport(file.parent, rest, importInfo);
             } else {
                 console.log(`Could not find parent for ${file.name}`);
+                return false
             }
 
         } else {
             if (file.type === "file") {
                 console.log(`Could not find child ${segment} for ${file.name} (is not a directory)`);
-                return;
+                return false;
             }
     
             const matchingChildren = file.children.filter(child => child.name.match(new RegExp(`^${segment}\\.?`)));
@@ -312,33 +360,48 @@ export const analyse = (root: ParsedDirectory, standardLib: string[]) => {
 
             if (rest.length === 0 && childFile) {
                 // console.log(childFile.name)
-                findAndMarkImport(childFile, rest, importInfo);
+                return findAndMarkImport(childFile, rest, importInfo);
             } else if (childDir) {
                 // console.log(childDir.name)
-                findAndMarkImport(childDir, rest, importInfo);
+                return findAndMarkImport(childDir, rest, importInfo);
             } else {
                 // n import from node_modules
                 console.log(`Could not find child ${segment} for ${file.name} (${importInfo.from})`);
+                return false
             }
         }
     }
 
     const findAndMarkNonRelativeImport = (file: ParsedDirectory, pathSegments: string[], importInfo: ImportInfo) => {
-        // find the root directory specified in compilerOptions.baseUrl of js/tsconfig
-        // Search compilerOptions.baseUrl from configs
-        const jsconfig = file.configs.find(c => Boolean(c.config.compilerOptions?.baseUrl))?.config
-        const packageJsonDeps = file.configs.find(c => Boolean(c.config.dependencies))?.config?.dependencies ?? {}
-        // console.log(packageJsonDeps)
 
-        if (Object.keys(packageJsonDeps).some(dep => dep.split('/')[0] === importInfo.from.split('/')[0])) {
+        const baseUrl = splitPath( file.configs.find(c => Boolean(c.config.compilerOptions?.baseUrl))?.config?.compilerOptions?.baseUrl ?? '' )
+        const aliases = file.configs.find(c => Boolean(c.config.compilerOptions?.paths))?.config?.compilerOptions?.paths ?? {}
+        const packageJsonAliases = file.configs.find(c => Boolean(c.config._moduleAliases))?.config?._moduleAliases ?? {}
+        const packageJsonDeps = file.configs.find(c => Boolean(c.config.dependencies))?.config?.dependencies ?? {}
+        
+        const resolvedPaths = resolvePathAlias(aliases, pathSegments)
+
+        if (Object.keys(packageJsonDeps).some(dep => splitPath(dep)[0] === splitPath(importInfo.from)[0])) {
             // console.log(Object.keys(packageJsonDeps))
             // Ok, dep found
-        } else if (standardLib.includes(importInfo.from.split('/')[0])) {
+        } else if (standardLib.includes(splitPath(importInfo.from)[0])) {
             // Ok, standard lib dep found
-        } else if (jsconfig) {
-            const { baseUrl } = jsconfig.compilerOptions
+        } else if (packageJsonAliases[pathSegments[0]]) {
+            // package.json alias found
+            const aliasedSegments = splitPath(packageJsonAliases[pathSegments[0]])
+            findAndMarkImport(file, ['.', ...aliasedSegments, ...pathSegments.slice(1)], importInfo)
+        } else if (resolvedPaths.length > 0) {
+            // jsconfig aliases found. Try each and stop when first found.
+            for (const resolved of resolvedPaths) {
+                const segments = [...baseUrl, ...resolved]
+                if (findAndMarkImport(file, segments, importInfo)) {
+                    break;
+                }
+            }
+
+        } else if (baseUrl.length > 0) {
             // Add ./{baseUrl} to the segments and start relative search
-            findAndMarkImport(file, ['.', baseUrl].concat(pathSegments), importInfo)
+            findAndMarkImport(file, ['.', ...baseUrl, ...pathSegments], importInfo)
         } else if (file.parent) {
             // config not yet found, go look for it from parent dir
             findAndMarkNonRelativeImport(file.parent, pathSegments, importInfo)
@@ -351,7 +414,7 @@ export const analyse = (root: ParsedDirectory, standardLib: string[]) => {
     const walkImports = (file: ParsedFile|ParsedDirectory, path: string[] = []) => {
         if (file.type === "file") {
             file.moduleInfo?.imports.forEach(importInfo => {
-                const pathSegments = importInfo.from.split("/");
+                const pathSegments = splitPath(importInfo.from);
 
                 // console.log(`Searching import ${importInfo.from} starting from ${path.join("/")} by ${relativePathSegments.join("/")}`);
 

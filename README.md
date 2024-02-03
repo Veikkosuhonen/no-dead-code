@@ -89,7 +89,9 @@ The config files are `eval`uated. Do not run this in a codebase that you do not 
 
 ### Path aliases
 
-TODO
+Path aliases defined in package.json and/or js/tsconfig = TODO
+
+Webpack path aliases = wontfix
 
 ## Todo
 
