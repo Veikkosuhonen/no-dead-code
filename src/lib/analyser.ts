@@ -273,7 +273,7 @@ const resolvePathAlias = (paths: { [alias: string]: string[] }, pathSegments: st
             if (resolvedPaths) {
                 resolveds.push(
                     ...resolvedPaths.map(resolvedPaths => ({
-                        segments: splitPath(resolvedPaths).map(segment => wildCard && segment === '*' ? wildCard : segment),
+                        segments: splitPath(resolvedPaths).map(segment => wildCard && segment === '*' ? wildCard : segment).concat(tempPathSegments),
                         specifity,
                     }))
                 )
@@ -283,6 +283,44 @@ const resolvePathAlias = (paths: { [alias: string]: string[] }, pathSegments: st
 
     return resolveds.map(r => r.segments)
 }
+/*console.log(
+resolvePathAlias({
+        "@controllers/*": [
+          "server/controllers/*"
+        ],
+        "@services/*": [
+          "server/services/*"
+        ],
+        "@middleware/*": [
+          "server/middleware/*"
+        ],
+        "@util/*": [
+          "server/util/*"
+        ],
+        "@database/*": [
+          "server/database/*"
+        ],
+        "@database": [
+          "server/database/index"
+        ],
+        "Utilities/*": [
+          "client/util/*"
+        ],
+        "Components/*": [
+          "client/components/*"
+        ],
+        "Assets/*": [
+          "client/assets/*"
+        ],
+        "@root/*": [
+          "*"
+        ],
+        "@models": [
+          "server/models/index"
+        ],
+      },
+      splitPath('Components/DegreeReformView/DegreeReformOverview'),
+))*/
 
 export const analyse = (root: ParsedDirectory, standardLib: string[], allowDevDeps = false) => {
     const allSourceFiles: ParsedFile[] = []
@@ -330,7 +368,7 @@ export const analyse = (root: ParsedDirectory, standardLib: string[], allowDevDe
                     markImport(indexFile, importInfo);
                     return true
                 } else {
-                    console.log(`Could not find index file for ${file.name}`);
+                    console.log(`Could not find index file for ${file.name}`, importInfo.from);
                     return false
                 }
             }
@@ -384,6 +422,10 @@ export const analyse = (root: ParsedDirectory, standardLib: string[], allowDevDe
 
         const resolvedPaths = resolvePathAlias(aliases, pathSegments)
 
+        // if (pathSegments.some(s => s.startsWith('socket'))) {
+        //     console.log(importInfo)
+        // }
+
         if (Object.keys(packageJsonDeps).some(dep => splitPath(dep)[0] === splitPath(importInfo.from)[0])) {
             // console.log(Object.keys(packageJsonDeps))
             // Ok, dep found
@@ -396,6 +438,7 @@ export const analyse = (root: ParsedDirectory, standardLib: string[], allowDevDe
         } else if (resolvedPaths.length > 0) {
             // jsconfig aliases found. Try each and stop when first found.
             for (const resolved of resolvedPaths) {
+                // console.log(resolved, importInfo.from)
                 const segments = [...baseUrl, ...resolved]
                 if (findAndMarkImport(file, segments, importInfo)) {
                     break;
