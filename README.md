@@ -28,7 +28,7 @@ src/client/pages/FeedbackTarget/tabs/Results/QuestionResults/utils.js: Unused ex
 
 ### `--extensions` (`-e`)
 
-Specify which extensions are included.
+Specify which extensions are included. Usually not needed.
 
 Default: `mjs cjs js ts tsx jsx`
 
@@ -37,6 +37,8 @@ Default: `mjs cjs js ts tsx jsx`
 Specify which paths are ignored.
 
 By default, `node_modules`, `.git`, `dist`, `build`, `migrations` are always ignored. Values passed to `-i` are added to these.
+
+You want to ignore files such as webpack, babel and eslint configs. Do not ignore js/tsconfig.
 
 ### `--no-default-ignore`
 
