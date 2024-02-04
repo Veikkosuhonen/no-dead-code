@@ -56,7 +56,7 @@ Do not resolve devDependencies in package.json.
 
 ## Caveats
 
-no-dead-code is far from complete, and should never be relied on blindly. The goal is to cover most typical coding standards, but it will inevitably output false positives and miss unused some exports.
+no-dead-code is far from complete, and should never be relied on blindly. The goal is to cover most typical coding standards, but it will inevitably output false positives, and miss some unused exports.
 
 ### ES modules
 
@@ -85,6 +85,10 @@ const {
 require('./foo')() // everything imported from './foo'
 
 someFunction(require('./foo')) // everything imported from './foo'
+
+require('./foo') // This is ignored, the return value is not used.
+
+import('./foo') // In contrast, an ES dynamic import imports everything from './foo'
 ```
 
 ### Absolute paths
@@ -103,5 +107,12 @@ Webpack path aliases = wontfix
 
 ## Todo
 
-- Formatted & colored output
-- Deeper usage search
+- Deeper usage search?
+
+## Contributing
+
+If you have a feature request/idea or found a bug, please submit an issue.
+
+If you have a project where this does not work correctly, share it. 
+
+Open to PRs.
